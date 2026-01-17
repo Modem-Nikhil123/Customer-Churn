@@ -15,7 +15,7 @@ __pycache__/
 # Data & Models (DO NOT COMMIT)
 # =========================
 *.csv
-*.pkl
+
 
 # =========================
 # Environment files
