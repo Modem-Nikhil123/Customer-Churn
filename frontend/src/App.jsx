@@ -26,11 +26,12 @@ function App() {
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-
+  const API_URL = import.meta.env.backend_url;
+  
   const predict = async () => {
     setError(null);
     try {
-      const res = await axios.post("http://localhost:8000/predict", {
+      const res = await axios.post(`${API_URL}/predict`, {
         Age: Number(form.Age),
         Gender: form.Gender,
         Usage_Frequency: Number(form.Usage_Frequency),
