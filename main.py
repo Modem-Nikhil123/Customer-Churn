@@ -3,19 +3,30 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import pandas as pd
 import pickle
+import os
+from dotenv import load_dotenv
 
-app = FastAPI() 
+load_dotenv()
+
+MODEL_PATH = os.getenv("MODEL_PATH")
+COLUMNS_PATH = os.getenv("COLUMNS_PATH")
+FRONTEND_URL = os.getenv("FRONTEND_URL")
+
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[FRONTEND_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-cph = pickle.load(open("cox_survival_model.pkl", "rb"))
-COLUMNS = pickle.load(open("columns.pkl", "rb"))
+with open(MODEL_PATH, "rb") as f:
+    cph = pickle.load(f)
+
+with open(COLUMNS_PATH, "rb") as f:
+    COLUMNS = pickle.load(f)
 
 
 class CustomerInput(BaseModel):
@@ -51,9 +62,7 @@ def preprocess(data: dict):
         if col not in df:
             df[col] = 0
 
-    df = df[COLUMNS]
-    return df
-
+    return df[COLUMNS]
 
 
 @app.post("/predict")
@@ -93,4 +102,3 @@ def predict(customer: CustomerInput):
         "survival_at_horizons": survival_at_horizons,
         "survival_curve": curve_data
     }
-
