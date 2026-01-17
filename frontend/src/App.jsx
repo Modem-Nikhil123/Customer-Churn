@@ -26,7 +26,7 @@ function App() {
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-  const API_URL = import.meta.env.backend_url;
+  const API_URL = import.meta.env.VITE_API_URL;
   
   const predict = async () => {
     setError(null);
