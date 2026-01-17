@@ -8,8 +8,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MODEL_PATH = os.getenv("MODEL_PATH")
-COLUMNS_PATH = os.getenv("COLUMNS_PATH")
 FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 app = FastAPI()
@@ -22,11 +20,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-with open(MODEL_PATH, "rb") as f:
-    cph = pickle.load(f)
-
-with open(COLUMNS_PATH, "rb") as f:
-    COLUMNS = pickle.load(f)
+cph = pickle.load(open("cox_survival_model.pkl", "rb"))
+COLUMNS = pickle.load(open("columns.pkl", "rb"))
 
 
 class CustomerInput(BaseModel):
