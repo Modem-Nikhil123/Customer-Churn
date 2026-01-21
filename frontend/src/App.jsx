@@ -22,14 +22,19 @@ function App() {
 
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-  const API_URL = import.meta.env.VITE_API_URL;
-  
+
   const predict = async () => {
     setError(null);
+    setResult(null);
+    setLoading(true);
+
     try {
       const res = await axios.post(`${API_URL}/predict`, {
         Age: Number(form.Age),
@@ -45,86 +50,124 @@ function App() {
     } catch (err) {
       console.error(err);
       setError("Prediction failed. Check backend logs.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-6xl mx-auto bg-white p-6 rounded shadow">
-
         <h1 className="text-2xl font-bold mb-6 text-center">
           Customer Churn – Time to Exit (Survival Analysis)
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
+          {/* ------------------ FORM ------------------ */}
           <div>
-            <h2 className="text-xl font-semibold mb-4">
-              Customer Details
-            </h2>
+            <h2 className="text-xl font-semibold mb-4">Customer Details</h2>
 
-            <input
-              name="Age"
-              placeholder="Age"
-              onChange={handleChange}
-              className="w-full border p-2 mb-2"
-            />
+            <div className="mb-3">
+              <label className="block text-sm font-medium mb-1">Age</label>
+              <input
+                type="number"
+                name="Age"
+                onChange={handleChange}
+                className="w-full border p-2"
+              />
+            </div>
 
-            <input
-              name="Usage_Frequency"
-              placeholder="Usage Frequency"
-              onChange={handleChange}
-              className="w-full border p-2 mb-2"
-            />
+            <div className="mb-3">
+              <label className="block text-sm font-medium mb-1">
+                Usage Frequency
+              </label>
+              <input
+                type="number"
+                name="Usage_Frequency"
+                onChange={handleChange}
+                className="w-full border p-2"
+              />
+            </div>
 
-            <input
-              name="Support_Calls"
-              placeholder="Support Calls"
-              onChange={handleChange}
-              className="w-full border p-2 mb-2"
-            />
+            <div className="mb-3">
+              <label className="block text-sm font-medium mb-1">
+                Support Calls
+              </label>
+              <input
+                type="number"
+                name="Support_Calls"
+                onChange={handleChange}
+                className="w-full border p-2"
+              />
+            </div>
 
-            <input
-              name="Total_Spend"
-              placeholder="Total Spend"
-              onChange={handleChange}
-              className="w-full border p-2 mb-2"
-            />
+            <div className="mb-3">
+              <label className="block text-sm font-medium mb-1">
+                Total Spend
+              </label>
+              <input
+                type="number"
+                name="Total_Spend"
+                onChange={handleChange}
+                className="w-full border p-2"
+              />
+            </div>
 
-            <select
-              name="Gender"
-              onChange={handleChange}
-              className="w-full border p-2 mb-2"
-            >
-              <option>Male</option>
-              <option>Female</option>
-            </select>
+            <div className="mb-3">
+              <label className="block text-sm font-medium mb-1">
+                Gender
+              </label>
+              <select
+                name="Gender"
+                onChange={handleChange}
+                className="w-full border p-2"
+              >
+                <option>Male</option>
+                <option>Female</option>
+              </select>
+            </div>
 
-            <select
-              name="Subscription_Type"
-              onChange={handleChange}
-              className="w-full border p-2 mb-2"
-            >
-              <option>Basic</option>
-              <option>Standard</option>
-              <option>Premium</option>
-            </select>
+            <div className="mb-3">
+              <label className="block text-sm font-medium mb-1">
+                Subscription Type
+              </label>
+              <select
+                name="Subscription_Type"
+                onChange={handleChange}
+                className="w-full border p-2"
+              >
+                <option>Basic</option>
+                <option>Standard</option>
+                <option>Premium</option>
+              </select>
+            </div>
 
-            <select
-              name="Contract_Length"
-              onChange={handleChange}
-              className="w-full border p-2 mb-4"
-            >
-              <option>Monthly</option>
-              <option>Quarterly</option>
-              <option>Annual</option>
-            </select>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">
+                Contract Length
+              </label>
+              <select
+                name="Contract_Length"
+                onChange={handleChange}
+                className="w-full border p-2"
+              >
+                <option>Monthly</option>
+                <option>Quarterly</option>
+                <option>Annual</option>
+              </select>
+            </div>
 
             <button
               onClick={predict}
-              className="bg-blue-600 text-white w-full py-2 rounded"
+              disabled={loading}
+              className={`w-full py-2 rounded text-white ${
+                loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600"
+              }`}
             >
-              Predict Time to Exit
+              {loading ? "Predicting..." : "Predict Time to Exit"}
             </button>
 
             {error && (
@@ -132,14 +175,21 @@ function App() {
             )}
           </div>
 
+          {/* ------------------ RESULTS ------------------ */}
           <div>
             <h2 className="text-xl font-semibold mb-4">
               Prediction Insights
             </h2>
 
-            {!result && (
+            {!result && !loading && (
               <p className="text-gray-500">
-                Enter customer details and click <b>Predict</b> to view results.
+                Enter customer details and click <b>Predict</b>.
+              </p>
+            )}
+
+            {loading && (
+              <p className="text-blue-600 font-medium">
+                Calculating survival probabilities...
               </p>
             )}
 
@@ -159,11 +209,13 @@ function App() {
                   Survival Probabilities
                 </h3>
 
-                {Object.entries(result.survival_at_horizons).map(([t, p]) => (
-                  <p key={t}>
-                    After {t} days: {(p * 100).toFixed(2)}%
-                  </p>
-                ))}
+                {Object.entries(result.survival_at_horizons).map(
+                  ([t, p]) => (
+                    <p key={t}>
+                      After {t} days: {(p * 100).toFixed(2)}%
+                    </p>
+                  )
+                )}
 
                 <h3 className="mt-4 font-semibold">
                   Survival Curve
